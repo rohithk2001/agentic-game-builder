@@ -332,6 +332,8 @@ npm install dotenv
 
 Create a `.env` file.
 
+Go to Grok Ai models and generate your api key and paste it here
+
 ```
 GROQ_API_KEY=your_api_key_here
 ```
