@@ -319,7 +319,13 @@ Install dependencies:
 ```
 npm install
 ```
+```
+npm install axios
+```
 
+```
+npm install dotenv
+```
 ---
 
 # Environment Setup
