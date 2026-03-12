@@ -1,0 +1,181 @@
+FILE:index.html
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Snake Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <script src="game.js"></script>
+</body>
+</html>
+
+FILE:style.css
+body {
+    background-color: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+#gameCanvas {
+    border: 2px solid #333;
+    background-color: #fff;
+}
+
+FILE:game.js
+let canvas = document.getElementById('gameCanvas');
+let ctx = canvas.getContext('2d');
+const scale = 20;
+let score = 0;
+
+// initial snake (3 segments)
+let snake = [
+    { x: scale * 5, y: scale * 5 },
+    { x: scale * 4, y: scale * 5 },
+    { x: scale * 3, y: scale * 5 }
+];
+
+// place first food
+let food = {
+    x: Math.floor(Math.random() * (canvas.width / scale)) * scale,
+    y: Math.floor(Math.random() * (canvas.height / scale)) * scale
+};
+
+let direction = 'right';
+
+// draw everything
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // snake
+    ctx.fillStyle = 'green';
+    snake.forEach(segment => {
+        ctx.fillRect(segment.x, segment.y, scale, scale);
+    });
+
+    // food
+    ctx.fillStyle = 'red';
+    ctx.fillRect(food.x, food.y, scale, scale);
+
+    // score
+    ctx.fillStyle = 'black';
+    ctx.font = '18px Arial';
+    ctx.fillText('Score: ' + score, 10, 20);
+}
+
+// update snake position and game state
+function update() {
+    // compute new head based on direction
+    let head = { x: snake[0].x, y: snake[0].y };
+    if (direction === 'right') head.x += scale;
+    else if (direction === 'left') head.x -= scale;
+    else if (direction === 'up') head.y -= scale;
+    else if (direction === 'down') head.y += scale;
+
+    // add new head to front of array
+    snake.unshift(head);
+
+    // check for food collision
+    if (head.x === food.x && head.y === food.y) {
+        score++;
+        // generate new food not on the snake
+        do {
+            food.x = Math.floor(Math.random() * (canvas.width / scale)) * scale;
+            food.y = Math.floor(Math.random() * (canvas.height / scale)) * scale;
+        } while (snake.some(seg => seg.x === food.x && seg.y === food.y));
+    } else {
+        // remove tail segment if no food eaten
+        snake.pop();
+    }
+
+    // check wall collisions
+    if (
+        head.x < 0 || head.x >= canvas.width ||
+        head.y < 0 || head.y >= canvas.height ||
+        selfCollision()
+    ) {
+        alert('Game Over! Your score: ' + score);
+        resetGame();
+    }
+}
+
+// detect collision of head with any body segment
+function selfCollision() {
+    for (let i = 1; i < snake.length; i++) {
+        if (snake[i].x === snake[0].x && snake[i].y === snake[0].y) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// reset to initial state after game over
+function resetGame() {
+    score = 0;
+    snake = [
+        { x: scale * 5, y: scale * 5 },
+        { x: scale * 4, y: scale * 5 },
+        { x: scale * 3, y: scale * 5 }
+    ];
+    direction = 'right';
+    food = {
+        x: Math.floor(Math.random() * (canvas.width / scale)) * scale,
+        y: Math.floor(Math.random() * (canvas.height / scale)) * scale
+    };
+}
+
+// handle keyboard input
+document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowUp' && direction !== 'down') direction = 'up';
+    else if (e.key === 'ArrowDown' && direction !== 'up') direction = 'down';
+    else if (e.key === 'ArrowLeft' && direction !== 'right') direction = 'left';
+    else if (e.key === 'ArrowRight' && direction !== 'left') direction = 'right';
+});
+
+// main loop – runs every 100 ms
+setInterval(() => {
+    draw();
+    update();
+}, 100);
+
+PLAN:
+The game is a classic “Snake” implementation using HTML5 Canvas.
+
+**Game board**
+- 400 × 400 px canvas, divided into a grid of 20 px cells (the `scale` constant).
+- The canvas is centered on the page with a thin border.
+
+**Snake**
+- Represented as an array of segment objects `{x, y}`.
+- Starts with three segments moving to the right.
+- Each game tick a new head is added in the current direction; the tail is removed unless food was eaten.
+
+**Food**
+- A single red square placed at a random grid cell that is not occupied by the snake.
+- When the snake’s head reaches the food, the score increments and a new food location is generated.
+
+**Controls**
+- Arrow keys change the snake’s direction.
+- The snake cannot reverse directly (e.g., from left to right) to avoid instant self‑collision.
+
+**Collision detection**
+- Wall collision: head coordinates outside the canvas bounds.
+- Self‑collision: head coordinates match any other segment.
+- On collision, an alert shows “Game Over” with the final score and the game resets.
+
+**Scoring**
+- Simple integer counter displayed in the top‑left corner of the canvas.
+
+**Game loop**
+- `setInterval` runs at 100 ms (10 frames per second), calling `draw()` to render and `update()` to advance the game state.
+
+**File structure**
+- `index.html` loads the canvas and links the CSS and JS.
+- `style.css` provides minimal styling to center the canvas and give it a border.
+- `game.js` contains all game logic, input handling, and the main loop.
+
+This design yields a lightweight, fully functional Snake game that runs in any modern browser without external libraries.
